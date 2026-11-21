@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hand Cricket Ultimate</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tone.js for Sound Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        body { font-family: 'Poppins', sans-serif; color: #f8fafc; }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #f8fafc;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.8); }
+        }
+        .glow-effect { animation: pulse-glow 2.5s infinite; }
+        @keyframes bounce-short {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .animate-bounce-short { animation: bounce-short 0.5s ease-in-out; }
+    </style>
+</head>
+<body class="h-full bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-950 text-slate-100 flex flex-col justify-between overflow-x-hidden selection:bg-indigo-500 selection:text-white">
+
+    <!-- Notification Toast -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Header Navigation -->
+    <header class="w-full py-4 px-6 md:px-12 flex justify-between items-center border-b border-white/10 backdrop-blur-md bg-black/30">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/30 text-white text-xl font-black">
+                <i class="fa-solid fa-baseball-bat-ball"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-wider bg-gradient-to-r from-amber-300 via-orange-300 to-yellow-200 bg-clip-text text-transparent">HAND CRICKET</h1>
+                <p class="text-xs text-slate-300 font-medium">Ultimate Edition</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button onclick="toggleSound()" id="sound-btn" class="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 transition text-slate-100" title="Toggle Sound">
+                <i class="fa-solid fa-volume-high" id="sound-icon"></i>
+            </button>
+            <button onclick="resetToHome()" class="px-4 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-200 text-sm font-semibold transition border border-red-500/30 flex items-center gap-2">
+                <i class="fa-solid fa-house"></i> Home
+            </button>
+        </div>
+    </header>
+
+    <!-- Main App Container -->
+    <main class="flex-grow flex items-center justify-center p-4 md:p-8 max-w-5xl mx-auto w-full">
+
+        <!-- VIEW 1: GAME MODE SELECTION -->
+        <div id="view-mode" class="w-full glass-panel rounded-3xl p-6 md:p-10 shadow-2xl transition-all duration-300">
+            <div class="text-center max-w-xl mx-auto mb-10">
+                <span class="px-3.5 py-1.5 rounded-full bg-indigo-500/30 text-indigo-200 text-xs font-bold tracking-widest uppercase border border-indigo-500/40">Select Game Variant</span>
+                <h2 class="text-3xl md:text-4xl font-extrabold mt-3 text-white">How would you like to play?</h2>
+                <p class="text-slate-300 mt-2 text-sm md:text-base font-normal">Choose your battlefield rulebook before challenging the smart AI bot.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                <!-- Normal Mode Card -->
+                <div onclick="selectGameMode('normal')" class="group relative bg-gradient-to-b from-white/10 to-white/5 hover:from-indigo-600/30 hover:to-purple-600/20 p-8 rounded-3xl border border-white/15 hover:border-indigo-400 transition-all duration-300 cursor-pointer shadow-xl flex flex-col justify-between">
+                    <div>
+                        <div class="w-14 h-14 rounded-2xl bg-indigo-500/30 text-indigo-300 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">Normal Classic</h3>
+                        <p class="text-slate-200 text-sm leading-relaxed">
+                            Traditional Hand Cricket. Score runs normally by matching or differing. Get out instantly when both show the <strong class="text-white font-semibold">exact same number</strong>.
+                        </p>
+                    </div>
+                    <div class="mt-8 flex items-center text-indigo-300 font-semibold text-sm group-hover:translate-x-2 transition-transform">
+                        <span>Select Normal Mode</span>
+                        <i class="fa-solid fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+
+                <!-- Successor-Predecessor Mode Card -->
+                <div onclick="selectGameMode('successor')" class="group relative bg-gradient-to-b from-white/10 to-white/5 hover:from-amber-600/30 hover:to-orange-600/20 p-8 rounded-3xl border border-white/15 hover:border-amber-400 transition-all duration-300 cursor-pointer shadow-xl flex flex-col justify-between">
+                    <div>
+                        <div class="w-14 h-14 rounded-2xl bg-amber-500/30 text-amber-300 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-bolt-lightning"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">Successor / Predecessor</h3>
+                        <p class="text-slate-200 text-sm leading-relaxed">
+                            Special Rules! Get out if numbers <strong class="text-white font-semibold">differ by exactly 1</strong>. If you show the <strong class="text-white font-semibold">exact same number</strong>, your runs are <strong class="text-amber-300 font-semibold">squared</strong>!
+                        </p>
+                    </div>
+                    <div class="mt-8 flex items-center text-amber-300 font-semibold text-sm group-hover:translate-x-2 transition-transform">
+                        <span>Select Successor Mode</span>
+                        <i class="fa-solid fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: RANGE SELECTION (1-6 or 1-10) -->
+        <div id="view-range" class="w-full glass-panel rounded-3xl p-6 md:p-10 shadow-2xl hidden transition-all duration-300">
+            <div class="text-center max-w-xl mx-auto mb-10">
+                <button onclick="goBackToMode()" class="text-slate-300 hover:text-white text-sm mb-4 inline-flex items-center gap-2 font-medium"><i class="fa-solid fa-arrow-left"></i> Change Mode</button>
+                <span id="selected-mode-badge" class="px-3.5 py-1.5 rounded-full bg-purple-500/30 text-purple-200 text-xs font-bold tracking-widest uppercase border border-purple-500/40">Mode Selected</span>
+                <h2 class="text-3xl md:text-4xl font-extrabold mt-3 text-white">Choose Number Range</h2>
+                <p class="text-slate-300 mt-2 text-sm">Select the maximum hand gesture value available for players.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                <div onclick="selectRange(6)" class="bg-white/10 hover:bg-white/15 p-8 rounded-3xl border border-white/15 hover:border-indigo-400 text-center cursor-pointer transition transform hover:-translate-y-1 shadow-lg">
+                    <div class="text-5xl font-black text-indigo-300 mb-3">1 - 6</div>
+                    <p class="text-slate-100 font-semibold text-base">Classic Hand Cricket</p>
+                    <p class="text-xs text-slate-300 mt-1">Standard 6-finger maximum limit</p>
+                </div>
+                <div onclick="selectRange(10)" class="bg-white/10 hover:bg-white/15 p-8 rounded-3xl border border-white/15 hover:border-amber-400 text-center cursor-pointer transition transform hover:-translate-y-1 shadow-lg">
+                    <div class="text-5xl font-black text-amber-300 mb-3">1 - 10</div>
+                    <p class="text-slate-100 font-semibold text-base">Extended Hand Cricket</p>
+                    <p class="text-xs text-slate-300 mt-1">Higher scoring & higher risk up to 10</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 3: TOSS INTERFACE -->
+        <div id="view-toss" class="w-full glass-panel rounded-3xl p-6 md:p-10 shadow-2xl hidden transition-all duration-300 max-w-2xl mx-auto">
+            <div class="text-center mb-8">
+                <span class="px-3.5 py-1.5 rounded-full bg-emerald-500/30 text-emerald-200 text-xs font-bold tracking-widest uppercase border border-emerald-500/40">The Toss</span>
+                <h2 class="text-3xl font-extrabold mt-3 text-white">Call Odd or Even</h2>
+                <p class="text-slate-300 mt-2 text-sm">Make your call and throw your fingers to win the toss decision!</p>
+            </div>
+
+            <!-- Call Selection -->
+            <div id="toss-call-section" class="space-y-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="setTossCall('odd')" id="btn-call-odd" class="p-6 rounded-2xl bg-white/10 hover:bg-white/20 border-2 border-white/15 hover:border-indigo-400 text-center font-bold text-xl text-white transition flex flex-col items-center justify-center gap-2">
+                        <i class="fa-solid fa-dice-one text-indigo-300 text-3xl"></i>
+                        <span>ODD</span>
+                    </button>
+                    <button onclick="setTossCall('even')" id="btn-call-even" class="p-6 rounded-2xl bg-white/10 hover:bg-white/20 border-2 border-white/15 hover:border-indigo-400 text-center font-bold text-xl text-white transition flex flex-col items-center justify-center gap-2">
+                        <i class="fa-solid fa-dice-two text-emerald-300 text-3xl"></i>
+                        <span>EVEN</span>
+                    </button>
+                </div>
+
+                <div class="text-center pt-4">
+                    <p class="text-slate-300 text-sm mb-3 font-medium">Select your finger number for the toss (1 to <span id="toss-max-range" class="text-white font-bold">6</span>):</p>
+                    <div id="toss-fingers-container" class="flex flex-wrap justify-center gap-2">
+                        <!-- Generated via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toss Result Animation & Decision -->
+            <div id="toss-result-section" class="hidden text-center space-y-6 py-4">
+                <div class="p-6 rounded-2xl bg-black/40 border border-white/15">
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="p-4 rounded-xl bg-indigo-500/20 border border-indigo-500/40">
+                            <p class="text-xs text-indigo-200 font-semibold">You Called</p>
+                            <p id="toss-display-call" class="text-xl font-bold uppercase mt-1 text-white">-</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-purple-500/20 border border-purple-500/40">
+                            <p class="text-xs text-purple-200 font-semibold">Fingers Thrown</p>
+                            <div class="flex justify-center gap-4 mt-1 text-base font-bold text-slate-100">
+                                <span>You: <strong id="toss-player-num" class="text-indigo-300">-</strong></span>
+                                <span>Bot: <strong id="toss-bot-num" class="text-purple-300">-</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                    <p id="toss-outcome-text" class="text-lg font-bold text-emerald-300 mt-2">-</p>
+                </div>
+
+                <div id="toss-decision-box" class="hidden space-y-4">
+                    <h3 class="text-xl font-bold text-white" id="toss-decision-prompt">What would you like to do?</h3>
+                    <div class="flex justify-center gap-4">
+                        <button onclick="chooseBatOrBowl('bat')" class="px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-lg shadow-lg shadow-emerald-500/30 transition transform hover:-translate-y-0.5">
+                            <i class="fa-solid fa-baseball-bat-ball mr-2"></i> Bat First
+                        </button>
+                        <button onclick="chooseBatOrBowl('bowl')" class="px-8 py-4 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold text-lg shadow-lg shadow-blue-500/30 transition transform hover:-translate-y-0.5">
+                            <i class="fa-solid fa-hand-fist mr-2"></i> Bowl First
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 4: LIVE MATCH ARENA -->
+        <div id="view-match" class="w-full glass-panel rounded-3xl p-6 md:p-8 shadow-2xl hidden transition-all duration-300">
+            
+            <!-- Match Header Status Bar -->
+            <div class="flex flex-col md:flex-row justify-between items-center bg-black/40 p-4 rounded-2xl border border-white/15 mb-6 gap-4">
+                <div class="flex items-center gap-3">
+                    <div id="match-innings-badge" class="px-3 py-1 rounded-lg bg-indigo-500/30 text-indigo-200 text-xs font-bold uppercase tracking-wider border border-indigo-500/40">1st Innings</div>
+                    <div>
+                        <h3 id="match-status-title" class="font-bold text-white text-base">You are Batting</h3>
+                        <p id="match-status-sub" class="text-xs text-slate-300">Target: Chasing runs</p>
+                    </div>
+                </div>
+                <!-- Scoreboard Card -->
+                <div class="flex items-center gap-6">
+                    <div class="text-center">
+                        <span class="text-xs text-slate-300 uppercase tracking-wider font-semibold">Score</span>
+                        <div class="text-2xl md:text-3xl font-black text-white" id="match-scoreboard">0 <span class="text-sm font-normal text-slate-300" id="match-wickets">/ 0 W</span></div>
+                    </div>
+                    <div id="match-target-container" class="hidden text-center pl-6 border-l border-white/15">
+                        <span class="text-xs text-amber-300 uppercase tracking-wider font-bold">Target</span>
+                        <div class="text-2xl md:text-3xl font-black text-amber-200" id="match-target-val">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Arena Duel Visualizer -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Player Box -->
+                <div class="bg-white/10 rounded-2xl p-6 border border-white/15 flex flex-col items-center text-center relative overflow-hidden shadow-lg">
+                    <div class="absolute top-3 left-3 px-2.5 py-1 rounded-md bg-indigo-500/30 text-indigo-200 text-xs font-semibold">You (<span id="player-role-label">Batter</span>)</div>
+                    <div id="player-gesture-box" class="w-24 h-24 my-6 rounded-3xl bg-indigo-600/30 border-2 border-indigo-400/50 flex items-center justify-center text-4xl text-indigo-200 shadow-inner transition-all duration-300">
+                        <i class="fa-solid fa-user" id="player-icon-display"></i>
+                    </div>
+                    <div class="text-3xl font-black text-white" id="player-last-move">-</div>
+                    <p class="text-xs text-slate-300 mt-1 font-medium">Your Choice</p>
+                </div>
+
+                <!-- Bot Box -->
+                <div class="bg-white/10 rounded-2xl p-6 border border-white/15 flex flex-col items-center text-center relative overflow-hidden shadow-lg">
+                    <div class="absolute top-3 right-3 px-2.5 py-1 rounded-md bg-purple-500/30 text-purple-200 text-xs font-semibold">Computer (<span id="bot-role-label">Bowler</span>)</div>
+                    <div id="bot-gesture-box" class="w-24 h-24 my-6 rounded-3xl bg-purple-600/30 border-2 border-purple-400/50 flex items-center justify-center text-4xl text-purple-200 shadow-inner transition-all duration-300">
+                        <i class="fa-solid fa-robot" id="bot-icon-display"></i>
+                    </div>
+                    <div class="text-3xl font-black text-white" id="bot-last-move">-</div>
+                    <p class="text-xs text-slate-300 mt-1 font-medium">Bot's Choice</p>
+                </div>
+            </div>
+
+            <!-- Commentary Banner -->
+            <div id="commentary-box" class="p-4 rounded-xl bg-indigo-950/80 border border-indigo-500/40 text-center mb-6 shadow-md">
+                <p id="commentary-text" class="text-sm md:text-base font-semibold text-indigo-100">Make your move! Select a finger value below.</p>
+            </div>
+
+            <!-- Finger Buttons Input Grid -->
+            <div class="space-y-3">
+                <p class="text-center text-xs font-bold uppercase tracking-wider text-slate-300">Choose your number (1 to <span id="game-max-label" class="text-white">6</span>)</p>
+                <div id="game-fingers-container" class="flex flex-wrap justify-center gap-2.5">
+                    <!-- Generated via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 5: MATCH SUMMARY / GAME OVER -->
+        <div id="view-gameover" class="w-full glass-panel rounded-3xl p-6 md:p-10 shadow-2xl hidden transition-all duration-300 max-w-xl mx-auto text-center">
+            <div id="gameover-trophy" class="w-20 h-20 mx-auto rounded-3xl bg-amber-500/30 text-amber-300 flex items-center justify-center text-4xl mb-6 shadow-lg shadow-amber-500/30">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <h2 id="gameover-title" class="text-3xl md:text-4xl font-extrabold text-white mb-2">Match Result</h2>
+            <p id="gameover-subtitle" class="text-slate-200 text-base mb-8 font-medium">You played brilliantly!</p>
+
+            <!-- Detailed Stats Card -->
+            <div class="bg-black/40 p-6 rounded-2xl border border-white/15 mb-8 space-y-4 text-left shadow-lg">
+                <div class="flex justify-between items-center border-b border-white/15 pb-3">
+                    <span class="text-slate-300 text-sm font-medium">Game Variant</span>
+                    <span id="summary-mode" class="font-bold text-white uppercase text-sm">Normal</span>
+                </div>
+                <div class="flex justify-between items-center border-b border-white/15 pb-3">
+                    <span class="text-slate-300 text-sm font-medium">Your Score</span>
+                    <span id="summary-player-score" class="font-bold text-indigo-300 text-lg">0</span>
+                </div>
+                <div class="flex justify-between items-center pb-1">
+                    <span class="text-slate-300 text-sm font-medium">Computer Score</span>
+                    <span id="summary-bot-score" class="font-bold text-purple-300 text-lg">0</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <button onclick="restartMatch()" class="px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold text-base shadow-lg shadow-indigo-500/30 transition transform hover:-translate-y-0.5">
+                    <i class="fa-solid fa-rotate-right mr-2"></i> Play Again
+    <!-- Sound Synthesis setup via Tone.js -->
+    <script>
+        // Sound State Variables & Tone.js Explanation:
+        /* 
+           The sound audio effects in this game are entirely generated in real-time 
+           using browser Web Audio API via the Tone.js library (loaded via CDN in the <head>).
+           
+           Instead of fetching external audio files (.mp3 or .wav), Tone.js creates 
+           synthetic oscillators on the fly when events occur (e.g., clicking buttons, 
+           scoring runs, hitting 4s/6s, getting out, or winning matches):
+           
+           - Clicks trigger a short "C5" synth pulse.
+           - Normal scores trigger "G4".
+           - Fours and Sixes trigger higher pitches ("E5", "C6").
+           - Wickets trigger low bass tones ("C3").
+           - Winning triggers an arpeggiated victory chord progression!
+        */
+        let soundEnabled = true;
+        let gameMode = 'normal'; // 'normal' or 'successor'
+        let maxRange = 6;        // 6 or 10
+
+        // Toss Variables
+        let tossCall = null;     // 'odd' or 'even'
+        let tossPlayerNum = 0;
+        let tossBotNum = 0;
+        let playerWonToss = false;
+        let playerBattingFirst = true;
+
+        // Match State Variables
+        let currentInnings = 1;  // 1 or 2
+        let playerScore = 0;
+        let botScore = 0;
+        let targetScore = 0;
+        let isMatchOver = false;
+
+        // Sound Synthesis setup via Tone.js
+        let synth = null;
+        function initSound() {
+            try {
+                synth = new Tone.Synth().toDestination();
+            } catch (e) {
+                console.log("Audio context blocked or unavailable", e);
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                if (Tone.context.state !== 'running') {
+                    Tone.start();
+                }
+                if (!synth) initSound();
+                if (!synth) return;
+
+                const now = Tone.now();
+                if (type === 'click') {
+                    synth.triggerAttackRelease("C5", "16n", now);
+                } else if (type === 'score') {
+                    synth.triggerAttackRelease("G4", "8n", now);
+                } else if (type === 'four') {
+                    synth.triggerAttackRelease("E5", "8n", now);
+                } else if (type === 'six') {
+                    synth.triggerAttackRelease("C6", "4n", now);
+                } else if (type === 'out') {
+                    synth.triggerAttackRelease("C3", "2n", now);
+                } else if (type === 'win') {
+                    synth.triggerAttackRelease("E5", "8n", now);
+                    synth.triggerAttackRelease("G5", "8n", now + 0.1);
+                    synth.triggerAttackRelease("C6", "4n", now + 0.2);
+                }
+            } catch (e) {
+                console.log("Audio play error", e);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                icon.className = "fa-solid fa-volume-high";
+                showToast("Sound Enabled", "success");
+            } else {
+                icon.className = "fa-solid fa-volume-xmark";
+                showToast("Sound Muted", "info");
+            }
+        }
+
+        // Notification Toast Helper
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            let bgClass = "bg-indigo-600 border-indigo-400 text-white";
+            if (type === 'success') bgClass = "bg-emerald-600 border-emerald-400 text-white";
+            if (type === 'error') bgClass = "bg-red-600 border-red-400 text-white";
+            if (type === 'warning') bgClass = "bg-amber-600 border-amber-400 text-white";
+
+            toast.className = `pointer-events-auto px-4 py-3 rounded-xl font-semibold shadow-2xl border backdrop-blur-md transition-all duration-300 transform translate-y-2 opacity-0 ${bgClass} flex items-center gap-3`;
+            toast.innerHTML = `<span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // View Controller Helper
+        function switchView(viewId) {
+            ['view-mode', 'view-range', 'view-toss', 'view-match', 'view-gameover'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(viewId).classList.remove('hidden');
+        }
+
+        function resetToHome() {
+            playSound('click');
+            switchView('view-mode');
+        }
+
+        function selectGameMode(mode) {
+            playSound('click');
+            gameMode = mode;
+            const badge = document.getElementById('selected-mode-badge');
+            if (mode === 'normal') {
+                badge.innerText = "Normal Classic Mode";
+                badge.className = "px-3.5 py-1.5 rounded-full bg-indigo-500/30 text-indigo-200 text-xs font-bold tracking-widest uppercase border border-indigo-500/40";
+            } else {
+                badge.innerText = "Successor / Predecessor Mode";
+                badge.className = "px-3.5 py-1.5 rounded-full bg-amber-500/30 text-amber-200 text-xs font-bold tracking-widest uppercase border border-amber-500/40";
+            }
+            switchView('view-range');
+        }
+
+        function goBackToMode() {
+            playSound('click');
+            switchView('view-mode');
+        }
+
+        function selectRange(range) {
+            playSound('click');
+            maxRange = range;
+            setupTossView();
+            switchView('view-toss');
+        }
+
+        // Toss Logic
+        function setupTossView() {
+            document.getElementById('toss-max-range').innerText = maxRange;
+            document.getElementById('toss-call-section').classList.remove('hidden');
+            document.getElementById('toss-result-section').classList.add('hidden');
+            document.getElementById('toss-decision-box').classList.add('hidden');
+            tossCall = null;
+            document.getElementById('btn-call-odd').classList.remove('border-indigo-400', 'bg-indigo-500/30');
+            document.getElementById('btn-call-even').classList.remove('border-indigo-400', 'bg-indigo-500/30');
+
+            // Render toss fingers buttons (1 to maxRange)
+            const container = document.getElementById('toss-fingers-container');
+            container.innerHTML = '';
+            for (let i = 1; i <= maxRange; i++) {
+                const btn = document.createElement('button');
+                btn.className = "w-12 h-12 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white font-bold text-lg transition transform hover:scale-105 shadow-md flex items-center justify-center";
+                btn.innerText = i;
+                btn.onclick = () => executeToss(i);
+                container.appendChild(btn);
+            }
+        }
+
+        function setTossCall(call) {
+            playSound('click');
+            tossCall = call;
+            if (call === 'odd') {
+                document.getElementById('btn-call-odd').classList.add('border-indigo-400', 'bg-indigo-500/30');
+                document.getElementById('btn-call-even').classList.remove('border-indigo-400', 'bg-indigo-500/30');
+            } else {
+                document.getElementById('btn-call-even').classList.add('border-indigo-400', 'bg-indigo-500/30');
+                document.getElementById('btn-call-odd').classList.remove('border-indigo-400', 'bg-indigo-500/30');
+            }
+            showToast(`You called ${call.toUpperCase()}. Now pick your toss fingers!`, 'info');
+        }
+
+        function executeToss(playerNum) {
+            if (!tossCall) {
+                showToast("Please call ODD or EVEN first!", "warning");
+                return;
+            }
+            playSound('click');
+            tossPlayerNum = playerNum;
+            // Bot picks random number between 1 and maxRange
+            tossBotNum = Math.floor(Math.random() * maxRange) + 1;
+
+            const sum = tossPlayerNum + tossBotNum;
+            const isSumEven = (sum % 2 === 0);
+            const sumType = isSumEven ? 'even' : 'odd';
+
+            playerWonToss = (sumType === tossCall);
+
+            document.getElementById('toss-call-section').classList.add('hidden');
+            const resultSection = document.getElementById('toss-result-section');
+            resultSection.classList.remove('hidden');
+
+            document.getElementById('toss-display-call').innerText = tossCall;
+            document.getElementById('toss-player-num').innerText = tossPlayerNum;
+            document.getElementById('toss-bot-num').innerText = tossBotNum;
+
+            const outcomeText = document.getElementById('toss-outcome-text');
+            if (playerWonToss) {
+                outcomeText.innerText = `Sum is ${sum} (${sumType.toUpperCase()})! You won the toss! 🎉`;
+                outcomeText.className = "text-lg font-bold text-emerald-300 mt-2";
+                document.getElementById('toss-decision-box').classList.remove('hidden');
+            } else {
+                outcomeText.innerText = `Sum is ${sum} (${sumType.toUpperCase()})! You lost the toss. Computer chose...`;
+                outcomeText.className = "text-lg font-bold text-amber-300 mt-2";
+                
+                // Bot makes decision instantly
+                setTimeout(() => {
+                    const botChoice = Math.random() < 0.5 ? 'bat' : 'bowl';
+                    if (botChoice === 'bat') {
+                        playerBattingFirst = false;
+                        showToast("Computer won toss and elected to BAT first!", "warning");
+                    } else {
+                        playerBattingFirst = true;
+                        showToast("Computer won toss and elected to BOWL first!", "success");
+                    }
+                    setTimeout(startMatch, 1500);
+                }, 1200);
+            }
+        }
+
+        function chooseBatOrBowl(choice) {
+            playSound('click');
+            playerBattingFirst = (choice === 'bat');
+            showToast(`You elected to ${choice.toUpperCase()} first!`, 'success');
+            startMatch();
+        }
+
+        // Match Initialization & Gameplay
+        function startMatch() {
+            currentInnings = 1;
+            playerScore = 0;
+            botScore = 0;
+            targetScore = 0;
+            isMatchOver = false;
+
+            document.getElementById('game-max-label').innerText = maxRange;
+            setupGameFingers();
+            updateMatchUI();
+            switchView('view-match');
+        }
+
+        function setupGameFingers() {
+            const container = document.getElementById('game-fingers-container');
+            container.innerHTML = '';
+            for (let i = 1; i <= maxRange; i++) {
+                const btn = document.createElement('button');
+                btn.className = "w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-white/10 hover:bg-white/25 border border-white/20 text-white font-extrabold text-lg md:text-xl transition transform hover:scale-105 shadow-md flex items-center justify-center";
+                btn.innerText = i;
+                btn.onclick = () => playTurn(i);
+                container.appendChild(btn);
+            }
+        }
+
+        function updateMatchUI() {
+            const inningsBadge = document.getElementById('match-innings-badge');
+            const statusTitle = document.getElementById('match-status-title');
+            const statusSub = document.getElementById('match-status-sub');
+            const scoreboard = document.getElementById('match-scoreboard');
+            const wickets = document.getElementById('match-wickets');
+            const targetContainer = document.getElementById('match-target-container');
+            const targetVal = document.getElementById('match-target-val');
+            const playerRoleLabel = document.getElementById('player-role-label');
+            const botRoleLabel = document.getElementById('bot-role-label');
+
+            if (currentInnings === 1) {
+                inningsBadge.innerText = "1st Innings";
+                if (playerBattingFirst) {
+                    statusTitle.innerText = "You are Batting";
+                    statusSub.innerText = "Score as many runs as possible!";
+                    playerRoleLabel.innerText = "Batter";
+                    botRoleLabel.innerText = "Bowler";
+                    scoreboard.innerHTML = `${playerScore} <span class="text-sm font-normal text-slate-300">/ 0 W</span>`;
+                } else {
+                    statusTitle.innerText = "You are Bowling";
+                    statusSub.innerText = "Try to restrict the computer!";
+                    playerRoleLabel.innerText = "Bowler";
+                    botRoleLabel.innerText = "Batter";
+                    scoreboard.innerHTML = `${botScore} <span class="text-sm font-normal text-slate-300">/ 0 W</span>`;
+                }
+                targetContainer.classList.add('hidden');
+            } else {
+                inningsBadge.innerText = "2nd Innings";
+                targetContainer.classList.remove('hidden');
+                targetVal.innerText = targetScore;
+
+                if (!playerBattingFirst) { // Player is chasing in 2nd innings
+                    statusTitle.innerText = "You are Chasing (Batting)";
+                    statusSub.innerText = `Need ${targetScore - playerScore} runs to win`;
+                    playerRoleLabel.innerText = "Batter";
+                    botRoleLabel.innerText = "Bowler";
+                    scoreboard.innerHTML = `${playerScore} <span class="text-sm font-normal text-slate-300">/ 0 W</span>`;
+                } else { // Bot is chasing in 2nd innings
+                    statusTitle.innerText = "Defending Target (Bowling)";
+                    statusSub.innerText = `Computer needs ${targetScore - botScore} runs`;
+                    playerRoleLabel.innerText = "Bowler";
+                    botRoleLabel.innerText = "Batter";
+                    scoreboard.innerHTML = `${botScore} <span class="text-sm font-normal text-slate-300">/ 0 W</span>`;
+                }
+            }
+        }
+
+        // Smart Bot AI for choosing moves
+        function getBotMove() {
+            return Math.floor(Math.random() * maxRange) + 1;
+        }
+
+        function playTurn(playerMove) {
+            if (isMatchOver) return;
+
+            const botMove = getBotMove();
+
+            // Display gestures with animation
+            const playerBox = document.getElementById('player-gesture-box');
+            const botBox = document.getElementById('bot-gesture-box');
+            playerBox.classList.add('animate-bounce-short');
+            botBox.classList.add('animate-bounce-short');
+            setTimeout(() => {
+                playerBox.classList.remove('animate-bounce-short');
+                botBox.classList.remove('animate-bounce-short');
+            }, 500);
+
+            document.getElementById('player-last-move').innerText = playerMove;
+            document.getElementById('bot-last-move').innerText = botMove;
+
+            let isPlayerBattingNow = (currentInnings === 1 && playerBattingFirst) || (currentInnings === 2 && !playerBattingFirst);
+
+            let isOut = false;
+            let runsScored = 0;
+            const commentary = document.getElementById('commentary-text');
+
+            if (gameMode === 'normal') {
+                // Normal mode rule: Out if exact same number or if 10 and 1 combination occurs
+                if (playerMove === botMove || (playerMove === 10 && botMove === 1) || (playerMove === 1 && botMove === 10)) {
+                    isOut = true;
+                } else {
+                    runsScored = isPlayerBattingNow ? playerMove : botMove;
+                }
+            } else {
+                // Successor-Predecessor mode rule:
+                // 1. Out if numbers differ by exactly 1 (Successor/Predecessor)
+                // 2. Range specific boundary out: if range is 6, 6 & 1 is out. If range is 10, 10 & 1 is out.
+                // 3. If same number, runs are squared!
+                const diff = Math.abs(playerMove - botMove);
+                const isBoundaryOut = (maxRange === 6 && ((playerMove === 6 && botMove === 1) || (playerMove === 1 && botMove === 6))) ||
+                                      (maxRange === 10 && ((playerMove === 10 && botMove === 1) || (playerMove === 1 && botMove === 10)));
+
+                if (diff === 1 || isBoundaryOut) {
+                    isOut = true;
+                } else if (playerMove === botMove) {
+                    const baseRun = isPlayerBattingNow ? playerMove : botMove;
+                    runsScored = baseRun * baseRun; // Squared runs!
+                } else {
+                    runsScored = isPlayerBattingNow ? playerMove : botMove;
+                }
+            }
+
+            if (isOut) {
+                playSound('out');
+                if (isPlayerBattingNow) {
+                    commentary.innerHTML = `<span class="text-red-400 font-bold">OUT!</span> You got out! (You: ${playerMove}, Bot: ${botMove})`;
+                    showToast("You are OUT!", "error");
+                } else {
+                    commentary.innerHTML = `<span class="text-emerald-400 font-bold">WICKET!</span> Computer got out! (You: ${playerMove}, Bot: ${botMove})`;
+                    showToast("Computer is OUT!", "success");
+                }
+
+                handleInningsEnd(isPlayerBattingNow ? 'player' : 'bot');
+            } else {
+                if (runsScored === 4) playSound('four');
+                else if (runsScored >= 6) playSound('six');
+                else playSound('score');
+
+                if (isPlayerBattingNow) {
+                    playerScore += runsScored;
+                    commentary.innerHTML = `You scored <strong class="text-white">${runsScored}</strong> runs! (You: ${playerMove}, Bot: ${botMove})`;
+                } else {
+                    botScore += runsScored;
+                    commentary.innerHTML = `Computer scored <strong class="text-white">${runsScored}</strong> runs! (You: ${playerMove}, Bot: ${botMove})`;
+                }
+
+                updateMatchUI();
+
+                // Check if target is chased in 2nd innings
+                if (currentInnings === 2) {
+                    if (isPlayerBattingNow && playerScore >= targetScore) {
+                        endMatch('player');
+                        return;
+                    } else if (!isPlayerBattingNow && botScore >= targetScore) {
+                        endMatch('bot');
+                        return;
+                    }
+                }
+            }
+        }
+
+        function handleInningsEnd(whoGotOut) {
+            if (currentInnings === 1) {
+                // Set target
+                if (playerBattingFirst) {
+                    targetScore = playerScore + 1;
+                    showToast(`Innings over! Target set: ${targetScore} runs`, "warning");
+                } else {
+                    targetScore = botScore + 1;
+                    showToast(`Innings over! Target set: ${targetScore} runs`, "warning");
+                }
+                currentInnings = 2;
+                setTimeout(() => {
+                    updateMatchUI();
+                    document.getElementById('commentary-text').innerText = "2nd Innings Started! The chase is on.";
+                }, 1500);
+            } else {
+                // 2nd innings out -> check who won
+                if (playerBattingFirst) {
+                    if (botScore >= targetScore) {
+                        endMatch('bot');
+                    } else if (playerScore > botScore) {
+                        endMatch('player');
+                    } else {
+                        endMatch('tie');
+                    }
+                } else {
+                    if (playerScore >= targetScore) {
+                        endMatch('player');
+                    } else if (botScore > playerScore) {
+                        endMatch('bot');
+                    } else {
+                        endMatch('tie');
+                    }
+                }
+            }
+        }
+
+        function endMatch(winner) {
+            isMatchOver = true;
+            playSound('win');
+            switchView('view-gameover');
+
+            const title = document.getElementById('gameover-title');
+            const subtitle = document.getElementById('gameover-subtitle');
+            const trophy = document.getElementById('gameover-trophy');
+
+            document.getElementById('summary-mode').innerText = gameMode === 'normal' ? 'Normal Classic' : 'Successor / Predecessor';
+            document.getElementById('summary-player-score').innerText = playerScore;
+            document.getElementById('summary-bot-score').innerText = botScore;
+
+            if (winner === 'player') {
+                title.innerText = "You Won the Match! 🏆";
+                subtitle.innerText = "Outstanding batting and bowling performance!";
+                trophy.className = "w-20 h-20 mx-auto rounded-3xl bg-emerald-500/30 text-emerald-300 flex items-center justify-center text-4xl mb-6 shadow-lg shadow-emerald-500/30";
+                trophy.innerHTML = '<i class="fa-solid fa-trophy"></i>';
+            } else if (winner === 'bot') {
+                title.innerText = "Computer Won! 🤖";
+                subtitle.innerText = "Better luck next time! The bot played brilliantly.";
+                trophy.className = "w-20 h-20 mx-auto rounded-3xl bg-red-500/30 text-red-300 flex items-center justify-center text-4xl mb-6 shadow-lg shadow-red-500/30";
+                trophy.innerHTML = '<i class="fa-solid fa-robot"></i>';
+            } else {
+                title.innerText = "It's a Tie! 🤝";
+                subtitle.innerText = "What a nail-biting encounter!";
+                trophy.className = "w-20 h-20 mx-auto rounded-3xl bg-amber-500/30 text-amber-300 flex items-center justify-center text-4xl mb-6 shadow-lg shadow-amber-500/30";
+                trophy.innerHTML = '<i class="fa-solid fa-handshake"></i>';
+            }
+        }
+
+        function restartMatch() {
+            playSound('click');
+            setupTossView();
+            switchView('view-toss');
+        }
+    </script>
+</body>
+</html>
